@@ -11,6 +11,8 @@ AgroGuard AI, çiftçinin suyu ve enerjiyi verimli kullanmasına yardım eden ak
 
 Ayrıntılı açıklama, kurulum, karar motoru, API ve demo senaryoları: **[claude_app/README.md](claude_app/README.md)**
 
+**Android APK:** [AgroGuardAI.apk indir (v1.0.0)](https://github.com/Froxy09/HydroGuard/releases/download/v1.0.0/AgroGuardAI.apk) · [Sürüm notları](https://github.com/Froxy09/HydroGuard/releases/tag/v1.0.0)
+
 ## Hızlı Başlangıç
 
 Backend:
