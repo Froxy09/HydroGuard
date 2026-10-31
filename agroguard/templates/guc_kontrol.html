@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-lightning-charge"></i> Enerji Optimizasyonu (Tarife Yönetimi)</h2>
+
+<div class="card p-4 mb-4">
+    <h4>Elektrik Dağıtım Tarifeleri (Günlük Zaman Dilimleri)</h4>
+    <table class="table table-dark table-bordered mt-3 text-center align-middle">
+        <thead>
+            <tr>
+                <th>Zaman Dilimi</th>
+                <th>Saat Aralığı</th>
+                <th>Birim Fiyat (TL/kWh)</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="{% if data.energy.tariff_name == 'Gündüz' %}table-active border-warning border-3{% endif %}">
+                <td><i class="bi bi-sun"></i> Gündüz</td>
+                <td>06:00 - 16:59</td>
+                <td>2.50 TL</td>
+                <td>{% if data.energy.tariff_name == 'Gündüz' %}<span class="badge bg-warning text-dark">ŞU AN AKTİF</span>{% endif %}</td>
+            </tr>
+            <tr class="{% if data.energy.tariff_name == 'Puant' %}table-active border-danger border-3{% endif %}">
+                <td><i class="bi bi-sunset"></i> Puant (En Pahalı)</td>
+                <td>17:00 - 21:59</td>
+                <td>4.00 TL</td>
+                <td>{% if data.energy.tariff_name == 'Puant' %}<span class="badge bg-danger">ŞU AN AKTİF</span>{% endif %}</td>
+            </tr>
+            <tr class="{% if data.energy.tariff_name == 'Gece' %}table-active border-success border-3{% endif %}">
+                <td><i class="bi bi-moon"></i> Gece (En Ucuz)</td>
+                <td>22:00 - 05:59</td>
+                <td>1.50 TL</td>
+                <td>{% if data.energy.tariff_name == 'Gece' %}<span class="badge bg-success">ŞU AN AKTİF</span>{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card p-4">
+    <h4>Optimizasyon Tasarruf Raporu</h4>
+    <hr class="border-secondary">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <p>Otonom sistemimiz, sulama ihtiyaçlarını (zirai don gibi acil durumlar hariç) mümkün olduğunca <strong>Gece tarifesine (1.50 TL/kWh)</strong> kaydırarak maliyetleri düşürür.</p>
+            <ul>
+                <li>Sondaj Pompası Gücü: ~10 kW</li>
+                <li>1 Saatlik Puant Maliyeti: 40.00 TL</li>
+                <li>1 Saatlik Gece Maliyeti: 15.00 TL</li>
+                <li class="text-success fw-bold">Saatte Edilen Net Tasarruf: 25.00 TL</li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <div class="alert {% if data.actuators.action_type == 'energy_save' %}alert-warning{% else %}alert-secondary{% endif %}">
+                <strong>Anlık Sistem Kararı:</strong><br>
+                {{ data.actuators.reason }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

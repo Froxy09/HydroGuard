@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+
+# Hal bülteni önbelleği çalışma sırasında yeniden oluşturulur
+hal_cache.json
+
+# Eski arşiv
+*.rar

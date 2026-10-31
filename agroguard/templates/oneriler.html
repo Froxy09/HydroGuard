@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-lightbulb-fill text-warning"></i> {{ data.current_field }} - Zirai Öneriler</h2>
+
+<div class="row">
+    <!-- SOL PANEL: Sistem Önerileri -->
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100 border-success">
+            <h4 class="text-success"><i class="bi bi-cpu"></i> AgroGuard AI Önerileri</h4>
+            <hr class="border-secondary">
+            
+            <ul class="list-group list-group-flush bg-transparent">
+                
+                <!-- YENİ: Ekim Nöbeti (Münavebe) ve Maliyet Tasarrufu Önerisi -->
+                <li class="list-group-item bg-transparent text-info border-secondary">
+                    <i class="bi bi-arrow-repeat me-2"></i> <strong>Ekim Nöbeti (Münavebe) Analizi:</strong> 
+                    Geçmiş sezon verilerine göre bu yıl toprağın azotu tükendi. Mısır yerine <strong>Baklagil (Fasulye)</strong> ekerseniz hem gübreden 20.000 TL tasarruf edersiniz hem de toprağın doğal verimini geri kazandırırsınız.
+                </li>
+
+                <!-- Evapotranspirasyon (Buharlaşma) Önerisi -->
+                {% if data.forecast.evapotranspiration_risk %}
+                <li class="list-group-item bg-transparent text-warning border-secondary">
+                    <i class="bi bi-sun-fill me-2"></i> <strong>Sulamayı Geceye Bırakın:</strong> 
+                    Gündüz sıcaklığı 25°C üzerinde seyretmektedir. Yazılım Destekli Evapotranspirasyon modelimize göre gündüz yapacağınız sulamanın <strong>%40'ı bitki köküne ulaşmadan havaya buharlaşacaktır.</strong> Su tasarrufu için sistemi otonomda tutun (Sulama geceye ertelendi).
+                </li>
+                {% else %}
+                <li class="list-group-item bg-transparent text-success border-secondary">
+                    <i class="bi bi-check-circle me-2"></i> <strong>Buharlaşma Kaybı Yok:</strong> 
+                    Hava şartları şu an evapotranspirasyon kaynaklı su kaybı yaratmıyor.
+                </li>
+                {% endif %}
+                
+                <!-- Fertigasyon Önerisi -->
+                {% if data.forecast.fertigation_locked %}
+                <li class="list-group-item bg-transparent text-danger border-secondary">
+                    <i class="bi bi-funnel-fill me-2"></i> <strong>Gübrelemeyi Durdurun:</strong> 
+                    Yağmurdan hemen önce atılan gübre yıkanır, yeraltı sularına karışır (israf/kirlilik) ve bitkiye ulaşmaz. Gübre atımını erteleyin.
+                </li>
+                {% else %}
+                <li class="list-group-item bg-transparent text-success border-secondary">
+                    <i class="bi bi-funnel-fill me-2"></i> <strong>Gübreleme (Fertigasyon) İçin Uygun:</strong> 
+                    Önümüzdeki 24 saatte şiddetli yağış beklenmiyor. Gübre şırıngalaması yapılabilir.
+                </li>
+                {% endif %}
+                
+                <!-- Mantar Hastalığı Önerisi -->
+                {% if data.forecast.mildew_risk %}
+                <li class="list-group-item bg-transparent text-danger border-secondary">
+                    <i class="bi bi-bug-fill me-2"></i> <strong>Kritik Mantar Riski:</strong> 
+                    Önümüzdeki günlerdeki yüksek nem ve uygun sıcaklık nedeniyle koruyucu ilaçlama tavsiye edilir.
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- SAĞ PANEL: Hastalıklar ve Çözümler (Katlanabilir Accordion) -->
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100">
+            <h4><i class="bi bi-journal-medical"></i> Hastalıklar ve Çözüm Yöntemleri</h4>
+            <hr class="border-secondary">
+            
+            <div class="accordion accordion-flush" id="diseaseAccordion" data-bs-theme="dark">
+                <div class="accordion-item bg-transparent border-secondary">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent text-light fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            Mantar Hastalıkları (Mildiyö & Külleme)
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#diseaseAccordion">
+                        <div class="accordion-body text-muted">
+                            <strong>Oluşum Şartı:</strong> %75 üzeri nem ve 15-25°C arası sıcaklık.<br>
+                            <strong>Çözüm:</strong> Sistem uyarı verdiğinde koruyucu bakırlı preparatlar veya sistemik fungusitler atılmalıdır. Tarlada havalandırma artırılmalı.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item bg-transparent border-secondary">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent text-light fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            Kırmızı Örümcek (Zararlı)
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#diseaseAccordion">
+                        <div class="accordion-body text-muted">
+                            <strong>Oluşum Şartı:</strong> Sıcak, kurak ve tozlu dönemler.<br>
+                            <strong>Çözüm:</strong> Nem oranının aşırı düşmesi engellenmeli. Erken teşhis edilirse spesifik akarisit uygulanmalıdır.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item bg-transparent border-secondary">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent text-light fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                            Zirai Don (Tomurcuk Yanığı)
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#diseaseAccordion">
+                        <div class="accordion-body text-muted">
+                            <strong>Oluşum Şartı:</strong> Sıcaklığın +2°C altına düşmesi.<br>
+                            <strong>Çözüm:</strong> AgroGuard sisteminin otonom pompayı açmasıyla "Su ile Dondurarak Koruma" (buzun iç sıcaklığı 0°C'de tutarak bitki özsuyunun eksiye düşmesini engelleme) sağlanır.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

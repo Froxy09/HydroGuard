@@ -1,0 +1,162 @@
+{
+    "events": {
+        "2026-10-28": [
+            "Su verildi"
+        ],
+        "2026-11-01": [
+            "Su verilecek"
+        ],
+        "2026-11-03": [
+            "Su verilecek"
+        ],
+        "2026-11-02": [
+            "Gübre verildi"
+        ],
+        "1. Tarla (Merkez)": {
+            "2026-10-31": [
+                "budama",
+                "Ekim yapıldı"
+            ],
+            "2026-08-23": [
+                "Hasat yapıldı"
+            ]
+        },
+        "2. Tarla (Kuzey Yaka)": {
+            "2026-11-01": [
+                "budama 2. tarla"
+            ],
+            "2026-10-29": [
+                "Su verildi"
+            ],
+            "2026-10-31": [
+                "Su verildi"
+            ]
+        },
+        "3. Tarla (Sera)": {}
+    },
+    "accounting": {
+        "1. Tarla (Merkez)": [
+            {
+                "id": "1793381426023",
+                "type": "gider",
+                "amount": 1500.0,
+                "desc": "mazot",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793381487188",
+                "type": "gelir",
+                "amount": 22000.0,
+                "desc": "satis",
+                "date": "2026-11-01"
+            },
+            {
+                "id": "1793382868942",
+                "type": "gider",
+                "category": "Zirai İlaç",
+                "amount": 1200.0,
+                "desc": "örümcek ilacı",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793382877904",
+                "type": "gider",
+                "category": "Tohum/Fide",
+                "amount": 10000.0,
+                "desc": "fide",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793382888740",
+                "type": "gider",
+                "category": "Mazot/Yakıt",
+                "amount": 4000.0,
+                "desc": "mazot",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793384174627",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 120.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 4.0 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793393460776",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793393661571",
+                "type": "gelir",
+                "category": "ÇKS Alan Bazlı Destek",
+                "amount": 50000.0,
+                "desc": "destek devlet",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793399433541",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793399435711",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793399436606",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793399438490",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793399439172",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            },
+            {
+                "id": "1793399700557",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 45.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 1.5 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            }
+        ],
+        "2. Tarla (Kuzey Yaka)": [
+            {
+                "id": "1793384267088",
+                "type": "gider",
+                "category": "Elektrik/Sondaj",
+                "amount": 120.0,
+                "desc": "Otonom Sulama Motoru (Tarife: 4.0 ₺/kWh x 15.0 kW)",
+                "date": "2026-10-30"
+            }
+        ],
+        "3. Tarla (Sera)": []
+    }
+}

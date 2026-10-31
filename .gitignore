@@ -1,0 +1,6 @@
+# Bu klasördeki diğer çalışmalar repoya girmez; yalnızca AgroGuard AI projesi izlenir
+/*
+!/.gitignore
+!/README.md
+!/agroguard/
+!/claude_app/

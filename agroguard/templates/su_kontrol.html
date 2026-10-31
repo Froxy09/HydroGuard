@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-droplet-half"></i> Sulama ve Don Koruması</h2>
+
+<!-- MANUEL KONTROL BUTONLARI (GERİ GETİRİLDİ VE GÜNCELLENDİ) -->
+<div class="card p-4 border-primary mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h4 class="mb-0">Manuel Sondaj Kontrol Paneli</h4>
+            <small class="text-muted">Otonom sistemi devre dışı bırakıp pompaya el ile müdahale edin.</small>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-success {% if data.pump_mode == 'auto' %}active{% endif %}" onclick="setPumpMode('auto')"><i class="bi bi-robot"></i> Yapay Zeka (Otonom)</button>
+            <button type="button" class="btn btn-outline-info {% if data.pump_mode == 'on' %}active{% endif %}" onclick="setPumpMode('on')"><i class="bi bi-play-fill"></i> Açık (Çalıştır)</button>
+            <button type="button" class="btn btn-outline-danger {% if data.pump_mode == 'off' %}active{% endif %}" onclick="setPumpMode('off')"><i class="bi bi-stop-fill"></i> Kapalı (Durdur)</button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100">
+            <h4>Don Koruma Sistemi</h4>
+            <hr class="border-secondary">
+            <p><strong>Günün Sıcaklığı:</strong> <span class="fs-4">{{ data.weather.temp }} °C</span></p>
+            {% if data.weather.temp <= 2.0 %}
+                <div class="alert alert-info"><i class="bi bi-thermometer-snow"></i> KRİTİK DON TEHLİKESİ: Sistem, tomurcukları korumak için devrede.</div>
+            {% else %}
+                <div class="alert alert-success"><i class="bi bi-thermometer-sun"></i> Don riski bulunmuyor.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100">
+            <h4>Toprak Nemi & Sulama Kararı</h4>
+            <hr class="border-secondary">
+            <p><strong>Toprak Nemi:</strong> %{{ data.weather.soil_moisture }} (Kritik: %40)</p>
+            <div class="alert {% if data.actuators.action_type == 'et_save' %}alert-warning{% else %}alert-secondary{% endif %}">
+                <strong>Anlık Sistem Kararı:</strong> {{ data.actuators.reason }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+    function setPumpMode(mode) {
+        fetch('/api/set-pump', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({mode: mode})
+        }).then(() => location.reload());
+    }
+</script>
+{% endblock %}

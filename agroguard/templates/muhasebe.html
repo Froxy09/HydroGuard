@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-4">
+    <h2><i class="bi bi-wallet2 text-info"></i> Ön Muhasebe & Finans Analizi ({{ data.current_field }})</h2>
+    <button class="btn btn-outline-light" onclick="exportBankReport()"><i class="bi bi-file-earmark-pdf text-danger"></i> Banka/Kredi Raporu Çıkar</button>
+</div>
+
+<!-- VS Code (Linter) Hatalarını önlemek için Flask verisini JS'e güvenli aktardığımız gizli div -->
+<div id="expenseDataContainer" data-expenses='{{ data.accounting.expense_breakdown | tojson | safe }}' style="display: none;"></div>
+
+<!-- Toast Bildirim -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="bankToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi bi-check-circle"></i> Ziraat Bankası formatında Kredi/Gelir tablosu başarıyla oluşturuldu!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+    <!-- GRAFİK PANELİ -->
+    <div class="col-md-5">
+        <div class="card p-3 h-100 border-secondary">
+            <h5 class="text-center text-muted mb-3">Gider Dağılım Grafiği</h5>
+            <div style="position: relative; height:250px; width:100%; display:flex; justify-content:center;">
+                <canvas id="expenseChart"></canvas>
+            </div>
+            {% if data.accounting.total_expense == 0 %}
+            <p class="text-center text-muted mt-2 small">Dağılım grafiği için sisteme gider kaydı eklemelisiniz.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- FİNANSAL ÖZET KARTLARI -->
+    <div class="col-md-7">
+        <div class="row g-3 h-100">
+            <div class="col-md-6">
+                <div class="card p-3 text-center h-100 border-success">
+                    <h6 class="text-muted"><i class="bi bi-arrow-down-circle text-success"></i> Toplam Gelir</h6>
+                    <h3 class="text-success">{{ "{:,.2f}".format(data.accounting.total_income) }} ₺</h3>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 text-center h-100 border-danger">
+                    <h6 class="text-muted"><i class="bi bi-arrow-up-circle text-danger"></i> Toplam Gider</h6>
+                    <h3 class="text-danger">{{ "{:,.2f}".format(data.accounting.total_expense) }} ₺</h3>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="card p-3 text-center h-100 {% if data.accounting.is_profitable %}border-primary{% else %}border-warning{% endif %}">
+                    <h6 class="text-muted"><i class="bi bi-bank"></i> Net Bakiye (ROI)</h6>
+                    <h2 class="{% if data.accounting.is_profitable %}text-primary{% else %}text-warning{% endif %}">
+                        {{ "{:,.2f}".format(data.accounting.net_balance) }} ₺
+                    </h2>
+                    <div class="d-flex justify-content-around mt-2 pt-2 border-top border-secondary">
+                        <small class="text-muted">Tarla Alanı: <strong>{{ data.field_size }} Dönüm</strong></small>
+                        <small class="text-danger">Dönüm Başı Maliyet: <strong>{{ "{:,.0f}".format(data.accounting.per_decare_expense) }} ₺</strong></small>
+                        <small class="{% if data.accounting.is_profitable %}text-success{% else %}text-warning{% endif %}">
+                            Dönüm Başı Kar: <strong>{{ "{:,.0f}".format(data.accounting.per_decare_profit) }} ₺</strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- KAYIT EKLEME FORMU -->
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+            <h4 class="mb-3">Yeni Kayıt Ekle</h4>
+            <!-- Bunu Yeni Kayıt Ekle başlığının altına yapıştır -->
+            <button class="btn btn-sm btn-outline-warning w-100 mb-3" onclick="logOtonomElectricity()">
+                <i class="bi bi-lightning-charge-fill"></i> Otonom Tüketimi (Elektrik) Sisteme İşle
+            </button>
+            <hr class="border-secondary">
+            
+            <div class="mb-3">
+                <label class="form-label text-muted">İşlem Türü</label>
+                <select id="accType" class="form-select bg-dark text-light border-secondary" onchange="updateCategories()">
+                    <option value="gider" selected>Gider Çıkışı</option>
+                    <option value="gelir">Gelir Girişi</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted">Kategori</label>
+                <select id="accCategory" class="form-select bg-dark text-light border-secondary"></select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label text-muted">Tutar (₺)</label>
+                <input type="number" id="accAmount" class="form-control bg-dark text-light border-secondary" placeholder="0.00" min="0" step="0.01">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted">Açıklama</label>
+                <input type="text" id="accDesc" class="form-control bg-dark text-light border-secondary" placeholder="Örn: Kırmızı Örümcek ilacı">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted">Tarih</label>
+                <input type="date" id="accDate" class="form-control bg-dark text-light border-secondary" value="{{ data.date_only }}">
+            </div>
+
+            <button class="btn btn-info w-100 fw-bold text-dark" onclick="addRecord()">Kaydet</button>
+        </div>
+    </div>
+
+    <!-- GEÇMİŞ İŞLEMLER TABLOSU -->
+    <div class="col-md-8 mb-4">
+        <div class="card p-4 h-100">
+            <h4 class="mb-3">Geçmiş İşlemler Dökümü</h4>
+            <hr class="border-secondary">
+            
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Tür / Kategori</th>
+                            <th>Açıklama</th>
+                            <th>Tutar</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if data.accounting.records|length == 0 %}
+                        <tr><td colspan="5" class="text-center text-muted py-4">Bu tarla için henüz bir gelir/gider kaydı bulunmuyor.</td></tr>
+                        {% else %}
+                            {% for rec in data.accounting.records %}
+                            <tr>
+                                <td><small>{{ rec.date }}</small></td>
+                                <td>
+                                    {% if rec.type == 'gelir' %}
+                                        <span class="badge bg-success">Gelir</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Gider</span>
+                                    {% endif %}
+                                    <br><small class="text-muted">{{ rec.category }}</small>
+                                </td>
+                                <td>{{ rec.desc }}</td>
+                                <td class="{% if rec.type == 'gelir' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                    {{ "{:,.2f}".format(rec.amount) }} ₺
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="removeRecord('{{ rec.id }}')"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const giderKategorileri = ["Mazot/Yakıt", "Gübre", "Zirai İlaç", "Tohum/Fide", "İşçilik", "Elektrik/Sondaj", "Kira", "Diğer Giderler"];
+    const gelirKategorileri = ["Hasat Satışı (Tüccar/Hal)", "Mazot ve Gübre Desteği", "ÇKS Alan Bazlı Destek", "Sertifikalı Tohum Desteği", "Diğer Gelirler"];
+
+
+    function logOtonomElectricity() {
+    if(confirm("Sondaj pompasının bugünkü otonom çalışma verisi hesaplanıp elektrik gideri olarak muhasebeye eklensin mi?")) {
+        fetch('/api/log-electricity', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            alert("Sisteme " + data.cost + " ₺ tutarında otomatik elektrik gideri işlendi!");
+            location.reload();
+        });
+    }
+}
+
+    function updateCategories() {
+        const type = document.getElementById('accType').value;
+        const catSelect = document.getElementById('accCategory');
+        catSelect.innerHTML = '';
+        
+        let targetArray = type === 'gider' ? giderKategorileri : gelirKategorileri;
+        targetArray.forEach(cat => {
+            let opt = document.createElement('option');
+            opt.value = cat; opt.innerHTML = cat;
+            catSelect.appendChild(opt);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateCategories(); 
+
+        const ctx = document.getElementById('expenseChart');
+        if(ctx) {
+            const context2d = ctx.getContext('2d');
+            
+            // Editör dostu veri çekme işlemi (Linter hatalarını engeller)
+            const rawData = document.getElementById('expenseDataContainer').dataset.expenses;
+            const expenseData = JSON.parse(rawData);
+            
+            const labels = Object.keys(expenseData).filter(key => expenseData[key] > 0);
+            const values = labels.map(key => expenseData[key]);
+            const colors = ['#dc3545', '#fd7e14', '#ffc107', '#20c997', '#0dcaf0', '#d63384', '#6c757d', '#adb5bd'];
+
+            if(values.length > 0) {
+                new Chart(context2d, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{ data: values, backgroundColor: colors, borderWidth: 1, borderColor: '#1e1e1e' }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: '#ccc', font: {size: 10} } } }
+                    }
+                });
+            }
+        }
+    });
+
+    function addRecord() {
+        const type = document.getElementById('accType').value;
+        const cat = document.getElementById('accCategory').value;
+        const amount = document.getElementById('accAmount').value;
+        const desc = document.getElementById('accDesc').value;
+        const date = document.getElementById('accDate').value;
+
+        if(!amount || amount <= 0 || !desc) {
+            alert("Lütfen tutarı ve açıklamayı eksiksiz giriniz."); return;
+        }
+
+        fetch('/api/add-acc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type, category: cat, amount: parseFloat(amount), desc: desc, date: date || new Date().toISOString().split('T')[0] })
+        }).then(() => location.reload());
+    }
+
+    function removeRecord(id) {
+        if(confirm("Bu finansal kaydı silmek istediğinize emin misiniz?")) {
+            fetch('/api/remove-acc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            }).then(() => location.reload());
+        }
+    }
+
+    function exportBankReport() {
+        const toast = new bootstrap.Toast(document.getElementById('bankToast'))
+        toast.show()
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 15px; }
+    .cal-header { font-weight: bold; text-align: center; color: #aaa; }
+    .cal-day { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; min-height: 120px; padding: 8px; cursor: pointer; transition: 0.2s; position: relative; }
+    .cal-day:hover { border-color: #20c997; background-color: #2b2b2b; transform: translateY(-2px); }
+    .cal-day.out-of-month { opacity: 0.4; }
+    .cal-day.is-today { border: 2px solid #20c997; }
+    .day-num { font-size: 1.2rem; font-weight: bold; display: block; }
+    .day-weather { font-size: 0.75rem; color: #aaa; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: #222; padding: 3px; border-radius: 4px;}
+    .event-badge { font-size: 0.75rem; display: block; margin-bottom: 3px; cursor: pointer; white-space: normal; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar3"></i> Zirai Ajanda ({{ data.current_field }})</h2>
+    <span class="fs-4">{{ data.month_name }}</span>
+</div>
+
+<!-- Dinamik Fertigasyon (Gübreleme) Uyarısı -->
+{% if data.forecast.fertigation_locked %}
+<div class="alert alert-warning shadow-sm mb-4 border-warning">
+    <h5 class="alert-heading"><i class="bi bi-funnel-fill"></i> Gübreleme (Fertigasyon) Koruması Aktif!</h5>
+    <p class="mb-0">Önümüzdeki 24 saat içerisinde yağış tahmini bulunmaktadır. <strong>Gübre atımı askıya alındı.</strong> Yağmurdan hemen önce veya aşırı sulama sırasında atılan gübre yıkanır, yeraltı sularına karışır (israf ve kirlilik) ve bitki köküne ulaşmaz.</p>
+</div>
+{% endif %}
+
+<div class="card p-4">
+    <div class="calendar-grid">
+        <div class="cal-header">Pzt</div><div class="cal-header">Sal</div><div class="cal-header">Çar</div>
+        <div class="cal-header">Per</div><div class="cal-header">Cum</div><div class="cal-header">Cmt</div><div class="cal-header">Paz</div>
+        
+        {% for day in data.calendar_days %}
+        <div class="cal-day {% if not day.is_current_month %}out-of-month{% endif %} {% if day.is_today %}is-today{% endif %}" 
+             onclick="openEventModal('{{ day.date }}')">
+            <span class="day-num">{{ day.day_num }}</span>
+            
+            <div class="day-weather">
+                <span>{{ day.temp }}°C {% if day.is_raining %}<i class="bi bi-cloud-rain text-info"></i>{% elif day.temp <= 2.0 %}<i class="bi bi-thermometer-snow text-primary"></i>{% else %}<i class="bi bi-sun text-warning"></i>{% endif %}</span>
+                <span class="text-info fw-bold" title="Toprak Nemi"><i class="bi bi-moisture"></i> %{{ day.soil_moisture }}</span>
+            </div>
+            
+            <div id="events-{{ day.date }}">
+                {% for event in day.events %}
+                    <span class="badge bg-secondary event-badge border border-secondary" onclick="event.stopPropagation(); removeEvent('{{ day.date }}', '{{ event }}')">{{ event }} &times;</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Olay Ekleme Modalı (Özel Olay Girdisi ile) -->
+<div class="modal fade" id="eventModal" tabindex="-1" data-bs-theme="dark">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Görev Ata: <span id="modalDateDisplay"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalTargetDate">
+                <h6 class="text-muted mb-2">Hızlı Şablonlar</h6>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <button class="btn btn-sm btn-primary" onclick="addEvent('Su verildi')">Su Verildi</button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="addEvent('Su verilecek')">Su Verilecek</button>
+                    <button class="btn btn-sm btn-success" onclick="addEvent('Gübre verildi')">Gübre Verildi</button>
+                    <button class="btn btn-sm btn-outline-success" onclick="addEvent('Gübre verilecek')">Gübre Verilecek</button>
+                </div>
+                <hr class="border-secondary">
+                <h6 class="text-muted mb-2">Klavyeden Özel Olay Ekle</h6>
+                <div class="input-group">
+                    <input type="text" id="customEventInput" class="form-control bg-dark text-light border-secondary" placeholder="Örn: İlaçlama yapılacak, Budama...">
+                    <button class="btn btn-success" onclick="addCustomEvent()">Ekle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let eventModal;
+    document.addEventListener("DOMContentLoaded", () => {
+        eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+    });
+    
+    function openEventModal(dateStr) {
+        document.getElementById('modalTargetDate').value = dateStr;
+        document.getElementById('modalDateDisplay').innerText = dateStr;
+        document.getElementById('customEventInput').value = '';
+        eventModal.show();
+    }
+
+    function addEvent(eventType) {
+        fetch('/api/add-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({date: document.getElementById('modalTargetDate').value, event: eventType})
+        }).then(() => location.reload());
+    }
+
+    function addCustomEvent() {
+        const val = document.getElementById('customEventInput').value.trim();
+        if(val) addEvent(val);
+    }
+
+    function removeEvent(dateStr, eventType) {
+        if(confirm(`"${eventType}" kaydını silmek istediğinize emin misiniz?`)) {
+            fetch('/api/remove-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({date: dateStr, event: eventType})
+            }).then(() => location.reload());
+        }
+    }
+</script>
+{% endblock %}

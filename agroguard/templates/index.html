@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">{{ data.current_field }} Durumu ({{ data.city }})</h1>
+    <small class="text-muted"><i class="bi bi-server"></i> Veri Kaynağı: {{ data.weather.source }}</small>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 text-center h-100">
+            <h5 class="text-muted">Sıcaklık</h5>
+            <h2 class="{% if data.weather.temp <= 2 %}text-info{% else %}text-warning{% endif %}">{{ data.weather.temp }} °C</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center h-100">
+            <h5 class="text-muted">Bağıl Nem</h5>
+            <h2 class="text-primary">%{{ data.weather.humidity }}</h2>
+            {% if data.weather.is_raining %}<small class="text-info"><i class="bi bi-cloud-rain"></i> Yağışlı</small>{% endif %}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center h-100">
+            <h5 class="text-muted">Tarife</h5>
+            <h2 class="text-{{ data.energy.tariff_color }}">{{ data.energy.tariff_name }}</h2>
+            <small>{{ data.energy.tariff_cost }} TL/kWh</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center h-100 {% if 'AÇIK' in data.actuators.pump %}border-success{% else %}border-secondary{% endif %}">
+            <h5 class="text-muted">Sondaj Pompası</h5>
+            <h2 class="{% if 'AÇIK' in data.actuators.pump %}text-success{% else %}text-secondary{% endif %}">{{ data.actuators.pump }}</h2>
+            {% if data.pump_mode != 'auto' %}<span class="badge bg-warning text-dark mt-1">Manuel Mod</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- YAKLAŞAN OLAYLAR ARTIK ÜSTTE -->
+<div class="card p-4 border-success mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-calendar-event text-success"></i> Yaklaşan Olaylar</h4>
+        <a href="/ajanda" class="btn btn-sm btn-outline-success">Ajandaya Git</a>
+    </div>
+    
+    {% if data.upcoming_events|length > 0 %}
+    <div class="d-flex overflow-auto gap-3 py-2" style="white-space: nowrap;">
+        {% for evt in data.upcoming_events %}
+        <div class="card bg-dark border-secondary p-3" style="min-width: 250px;">
+            <div class="mb-2"><span class="badge bg-secondary"><i class="bi bi-clock"></i> {{ evt.date_str }}</span></div>
+            <h5 class="mb-0 text-light">{{ evt.event_name }}</h5>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-secondary mb-0">Bu tarla için yakın zamanda planlanmış bir faaliyet bulunmuyor.</div>
+    {% endif %}
+</div>
+
+<!-- SİSTEM KARARI ARTIK ALTTA -->
+<div class="card p-4 mb-4">
+    <h4>Sistem Kararı / Durum Raporu</h4>
+    <hr class="border-secondary">
+    <div class="alert {% if data.actuators.action_type == 'manual_override' %}alert-warning{% elif data.actuators.action_type == 'frost_alert' %}alert-info{% elif data.actuators.action_type in ['energy_save', 'et_save'] %}alert-warning{% elif data.actuators.action_type == 'irrigation_optimal' %}alert-success{% else %}alert-primary{% endif %} mb-0">
+        <strong><i class="bi bi-robot"></i> Algoritma Sonucu:</strong> {{ data.actuators.reason }}
+    </div>
+</div>
+{% endblock %}
